@@ -4,6 +4,7 @@ use std::collections::HashMap;
 struct Customer {
     funds: f32,
     cart: HashMap<String, (CustomerItem, f32)>,
+    preference: CheckoutPreference,
 }
 
 enum CheckoutPreference {
@@ -29,6 +30,7 @@ impl Customer {
         Self {
             funds,
             cart: HashMap::new(),
+            preference: CheckoutPreference::Truncate,
         }
     }
 
@@ -49,6 +51,7 @@ impl Customer {
             self.funds -= total;
         } else {
             let remaining = total - self.funds;
+
             println!(
                 "Not enough funds available for purchase, funds: {}, total: {}, remaining: {}",
                 &self.funds, total, remaining
@@ -143,6 +146,7 @@ impl Cashier {
                 store.decrement_item_count(&product_name, count);
                 total += item_total;
                 customer.pay(total);
+                self.aisle.register.funds += total;
                 let line_item =
                     format!("{product_name}: {price}, x{count}, item_total: {item_total}.");
 
