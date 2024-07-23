@@ -60,6 +60,29 @@ struct Inventory {
     items: HashMap<String, f32>,
 }
 
+impl Inventory {
+    pub fn new() -> Self {
+        Self {
+            items: HashMap::new(),
+        }
+    }
+
+    pub fn decrement_item_count(&mut self, item_name: String) {
+        if *self.items.get(&item_name).unwrap() <= (0.0 as f32) {
+            self.remove_item(item_name);
+        } else {
+            self.items.entry(item_name).and_modify(|item| *item -= 1.0);
+        }
+    }
+    pub fn increment_item_count(&mut self, item_name: String) {
+        self.items.entry(item_name).and_modify(|item| *item += 1.0);
+    }
+
+    pub fn remove_item(&mut self, item_name: String) {
+        self.items.remove(&item_name);
+    }
+}
+
 struct Cashier {
     register_no: u32,
     aisle_no: u32,
