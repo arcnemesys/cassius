@@ -1,10 +1,12 @@
 use std::collections::HashMap;
 
+#[derive(Debug, Clone)]
 struct Customer {
     funds: f32,
     items: HashMap<String, Item>,
 }
 
+#[derive(Debug, Clone)]
 struct Item {
     name: String,
     price: f32,
@@ -52,14 +54,19 @@ impl Customer {
     }
 }
 
-struct StoreInventory {
+#[derive(Debug, Clone)]
+struct Store {
     items: HashMap<String, Item>,
+    cashiers: Vec<Cashier>,
+    aisles: Vec<Aisle>,
 }
 
-impl StoreInventory {
+impl Store {
     pub fn new() -> Self {
         Self {
             items: HashMap::new(),
+            cashiers: Vec::new(),
+            aisles: Vec::new(),
         }
     }
 
@@ -93,19 +100,53 @@ impl StoreInventory {
     }
 }
 
+#[derive(Debug, Clone)]
 struct Cashier {
     register_no: u32,
-    aisle_no: u32,
+    aisle: Aisle,
 }
+
+impl Cashier {
+    pub fn new() -> Self {
+        Self {
+            register_no: 0,
+            aisle: Aisle::new(),
+        }
+    }
+
+    pub fn process_customers(&mut self) {
+        let customers = self.aisle.customers.clone();
+    }
+}
+
+#[derive(Debug, Clone)]
 struct Register {
     number: u32,
     funds: f32,
 }
 
+impl Register {
+    pub fn new() -> Self {
+        Self {
+            number: 0,
+            funds: 0.0,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 struct Aisle {
-    cashier: Cashier,
     customers: Vec<Customer>,
     register: Register,
+}
+
+impl Aisle {
+    pub fn new() -> Self {
+        Self {
+            customers: Vec::new(),
+            register: Register::new(),
+        }
+    }
 }
 
 fn main() {
