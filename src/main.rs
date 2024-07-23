@@ -5,10 +5,6 @@ struct Customer {
     items: HashMap<String, Item>,
 }
 
-struct StoreInventory {
-    items: HashMap<String, f32>,
-}
-
 struct Item {
     name: String,
     price: f32,
@@ -56,11 +52,11 @@ impl Customer {
     }
 }
 
-struct Inventory {
-    items: HashMap<String, f32>,
+struct StoreInventory {
+    items: HashMap<String, Item>,
 }
 
-impl Inventory {
+impl StoreInventory {
     pub fn new() -> Self {
         Self {
             items: HashMap::new(),
@@ -68,18 +64,32 @@ impl Inventory {
     }
 
     pub fn decrement_item_count(&mut self, item_name: String) {
-        if *self.items.get(&item_name).unwrap() <= (0.0 as f32) {
+        if self.items.get(&item_name).unwrap().count <= (0.0 as f32) {
             self.remove_item(item_name);
         } else {
-            self.items.entry(item_name).and_modify(|item| *item -= 1.0);
+            self.items
+                .entry(item_name)
+                .and_modify(|item| item.count -= 1.0);
         }
     }
     pub fn increment_item_count(&mut self, item_name: String) {
-        self.items.entry(item_name).and_modify(|item| *item += 1.0);
+        self.items
+            .entry(item_name)
+            .and_modify(|item| item.count += 1.0);
     }
 
     pub fn remove_item(&mut self, item_name: String) {
         self.items.remove(&item_name);
+    }
+
+    pub fn add_item(&mut self, item_name: String, price: f32, count: u32) {
+        let store_item = Item {
+            name: item_name.clone(),
+            price,
+            count: count as f32,
+        };
+
+        self.items.insert(item_name, store_item);
     }
 }
 
