@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 #[derive(Debug, Clone)]
 struct Customer {
@@ -64,7 +64,7 @@ impl Customer {
         let line_no = lane.customers.len();
         self.place = line_no as u32;
         let customer = self.clone();
-        lane.customers.push(customer.into());
+        lane.customers.push_back(customer.into());
     }
 
     pub fn exit_line(&self, lane: &mut Lane) {
@@ -141,6 +141,8 @@ impl Cashier {
         let customers = self.lane.customers.clone();
 
         for mut customer in customers {
+            // We should removing from the aisle
+            // as we do this
             let cart = customer.cart.clone();
             let mut total = 0.0 as f32;
             let mut receipt = Vec::new();
@@ -199,16 +201,28 @@ impl Register {
 
 #[derive(Debug, Clone)]
 struct Lane {
-    customers: Vec<Customer>,
+    customers: VecDeque<Customer>,
     register: Register,
 }
 
 impl Lane {
     pub fn new() -> Self {
         Self {
-            customers: Vec::new(),
+            customers: VecDeque::new(),
             register: Register::new(),
         }
+    }
+
+    pub fn pop_front(&mut self) {
+        self.customers.pop_front();
+    }
+
+    pub fn pop_back(&mut self) {
+        self.customers.pop_back();
+    }
+
+    pub fn add_back(&mut self, customer: Customer) {
+        self.customers.push(customer);
     }
 }
 
