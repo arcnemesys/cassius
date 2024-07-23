@@ -5,8 +5,10 @@ struct Customer {
     funds: f32,
     cart: HashMap<String, (CustomerItem, f32)>,
     preference: CheckoutPreference,
+    place: u32,
 }
 
+#[derive(Debug, Clone)]
 enum CheckoutPreference {
     Truncate,
     Cover,
@@ -31,6 +33,7 @@ impl Customer {
             funds,
             cart: HashMap::new(),
             preference: CheckoutPreference::Truncate,
+            place: 0,
         }
     }
 
@@ -44,9 +47,7 @@ impl Customer {
         }
     }
 
-    pub fn pay(&mut self, total: f32) -> Vec<String> {
-        let mut receipt = Vec::new();
-
+    pub fn pay(&mut self, total: f32) {
         if self.funds >= total {
             self.funds -= total;
         } else {
@@ -57,20 +58,29 @@ impl Customer {
                 &self.funds, total, remaining
             );
         }
-
-        receipt
     }
-}
 
-fn line_item(product: &CustomerItem) -> Vec<String> {
-    todo!()
+    pub fn get_in_line(&mut self, lane: &mut Lane) {
+        let line_no = lane.customers.len();
+        self.place = line_no as u32;
+        let customer = self.clone();
+        lane.customers.push(customer.into());
+    }
+
+    pub fn exit_line(&self, lane: &mut Lane) {
+        // This also requires updating store inventory,
+        // since if a customer leaves, they don't go through
+        // with the purchase
+        // store.update_inventory(item, item count)
+        lane.customers.remove(self.place as usize);
+    }
 }
 
 #[derive(Debug, Clone)]
 struct Store {
     items: HashMap<String, InventoryItem>,
     cashiers: Vec<Cashier>,
-    aisles: Vec<Aisle>,
+    lanes: Vec<Lane>,
 }
 
 impl Store {
@@ -78,7 +88,7 @@ impl Store {
         Self {
             items: HashMap::new(),
             cashiers: Vec::new(),
-            aisles: Vec::new(),
+            lanes: Vec::new(),
         }
     }
 
@@ -116,27 +126,31 @@ impl Store {
 #[derive(Debug, Clone)]
 struct Cashier {
     register_no: u32,
-    aisle: Aisle,
+    lane: Lane,
 }
 
 impl Cashier {
     pub fn new() -> Self {
         Self {
             register_no: 0,
-            aisle: Aisle::new(),
+            lane: Lane::new(),
         }
     }
 
     pub fn process_customers(&mut self, store: &mut Store) {
-        let customers = self.aisle.customers.clone();
-
-        let register = self.aisle.register.clone();
+        let customers = self.lane.customers.clone();
 
         for mut customer in customers {
             let cart = customer.cart.clone();
             let mut total = 0.0 as f32;
             let mut receipt = Vec::new();
             for item in cart {
+                if item.1 .0.discarded == true {
+                    // We have to increment the store inventory
+                    // to reflect the non-purchase
+
+                    continue;
+                }
                 let (product_name, (purchase, count)) = item;
 
                 let price = purchase.product.price;
@@ -146,7 +160,7 @@ impl Cashier {
                 store.decrement_item_count(&product_name, count);
                 total += item_total;
                 customer.pay(total);
-                self.aisle.register.funds += total;
+                self.lane.register.funds += total;
                 let line_item =
                     format!("{product_name}: {price}, x{count}, item_total: {item_total}.");
 
@@ -184,12 +198,12 @@ impl Register {
 }
 
 #[derive(Debug, Clone)]
-struct Aisle {
+struct Lane {
     customers: Vec<Customer>,
     register: Register,
 }
 
-impl Aisle {
+impl Lane {
     pub fn new() -> Self {
         Self {
             customers: Vec::new(),
