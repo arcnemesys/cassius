@@ -3,30 +3,35 @@ use std::collections::HashMap;
 #[derive(Debug, Clone)]
 struct Customer {
     funds: f32,
-    items: HashMap<String, Item>,
+    cart: HashMap<String, CustomerItem>,
 }
 
 #[derive(Debug, Clone)]
-struct Item {
+struct InventoryItem {
     name: String,
     price: f32,
     count: f32,
+}
+#[derive(Debug, Clone)]
+struct CustomerItem {
+    product: InventoryItem,
+    discarded: bool,
 }
 
 impl Customer {
     pub fn new(funds: f32) -> Self {
         Self {
             funds,
-            items: HashMap::new(),
+            cart: HashMap::new(),
         }
     }
 
-    pub fn add_item(&mut self, item: Item) {
-        self.items.insert(item.name.clone(), item);
+    pub fn add_item(&mut self, item: CustomerItem) {
+        self.cart.insert(item.product.name.clone(), item);
     }
     pub fn remove_item(&mut self, item_name: String) {
-        if self.items.contains_key(&item_name) {
-            self.items.remove(&item_name);
+        if self.cart.contains_key(&item_name) {
+            self.cart.remove(&item_name);
         }
     }
 
@@ -36,9 +41,9 @@ impl Customer {
         if self.funds >= total {
             self.funds -= total;
 
-            for i in self.items.keys() {
-                let price = self.items.get(i).unwrap().price;
-                let count = self.items.get(i).unwrap().count;
+            for i in self.cart.keys() {
+                let price = self.cart.get(i).unwrap().product.price;
+                let count = self.cart.get(i).unwrap().product.count;
                 let line_item = format!(r"{}: {}, x{} \n", i, price, count);
                 receipt.push(line_item);
             }
@@ -56,7 +61,7 @@ impl Customer {
 
 #[derive(Debug, Clone)]
 struct Store {
-    items: HashMap<String, Item>,
+    items: HashMap<String, InventoryItem>,
     cashiers: Vec<Cashier>,
     aisles: Vec<Aisle>,
 }
@@ -90,7 +95,7 @@ impl Store {
     }
 
     pub fn add_item(&mut self, item_name: String, price: f32, count: u32) {
-        let store_item = Item {
+        let store_item = InventoryItem {
             name: item_name.clone(),
             price,
             count: count as f32,
@@ -116,6 +121,12 @@ impl Cashier {
 
     pub fn process_customers(&mut self) {
         let customers = self.aisle.customers.clone();
+
+        let register = self.aisle.register.clone();
+
+        // Loop through customers:
+        // For each customer:
+        // Loop through items, incrementing store inventory
     }
 }
 
